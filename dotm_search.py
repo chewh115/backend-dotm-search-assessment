@@ -19,7 +19,7 @@ def create_parser():
     parser.add_argument('search_term', action="store",
                         help="Keyword you want to search for.")
     parser.add_argument('--directory', action="store", default='./',
-                        help="The directory to search in. Default is current directory.")
+                        help="The directory to search in.")
     search_info = parser.parse_args()
     return search_info
 
@@ -39,28 +39,29 @@ def unzip_file(directory, search_term):
     for file in file_list:
         with zipfile.ZipFile(file, 'r') as zipped_files:
             zipped_files.extractall('./extracted')
-        with open('./extracted/word/document.xml', 'r') as file_to_search:
-            file_words = file_to_search.read()
-            search_context = search_for_term(file_words, search_term)
-            if search_context != -1:
-                print('Match found in: {}'.format(file))
-                print('The context is: {}'.format(search_context))
-                search_term_counter += 1
+        file_path = './extracted/word/document.xml'
+        search_context = search_for_term_and_context(file_path, search_term)
+        if search_context != -1:
+            print('Match found in: {}'.format(file))
+            print('The context is: {}'.format(search_context))
+            search_term_counter += 1
     print('Number of files searched for {}: '.format(
         search_term) + str(len(file_list)))
     print('We found {} files containing {}.'.format(
         search_term_counter, search_term))
 
 
-def search_for_term(file_words, search_term):
-    term_index = file_words.find(search_term)
-    context_slice = min(len(file_words), (term_index + 40))
-    if term_index == -1:
-        return -1
-    elif term_index < 40:
-        return file_words[0:context_slice]
-    else:
-        return file_words[term_index - 40:context_slice]
+def search_for_term_and_context(file_path, search_term):
+    with open(file_path, 'r') as file_to_search:
+        file_words = file_to_search.read()
+        term_index = file_words.find(search_term)
+        context_slice = min(len(file_words), (term_index + 40))
+        if term_index == -1:
+            return -1
+        elif term_index < 40:
+            return file_words[0:context_slice]
+        else:
+            return file_words[term_index - 40:context_slice]
 
 
 def main():
